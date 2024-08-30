@@ -35,7 +35,7 @@ def count():
 ######################################################################
 @app.route("/picture", methods=["GET"])
 def get_pictures():
-    pass
+    return jsonify(data)
 
 ######################################################################
 # GET A PICTURE
@@ -44,7 +44,11 @@ def get_pictures():
 
 @app.route("/picture/<int:id>", methods=["GET"])
 def get_picture_by_id(id):
-    pass
+    for item in data:
+        if item['id'] == id:
+            return jsonify(item)
+        
+    return jsonify(message="Not found"), 404
 
 
 ######################################################################
@@ -52,7 +56,19 @@ def get_picture_by_id(id):
 ######################################################################
 @app.route("/picture", methods=["POST"])
 def create_picture():
-    pass
+    try:
+        picture = request.get_json()
+
+        id_exists = any(item['id'] == picture['id'] for item in data)
+        if id_exists == True:
+            return jsonify(Message=f"picture with id {picture['id']} already present"), 302
+        
+        data.append(picture)
+        return jsonify(picture), 201
+
+    except Exception as e:
+        return jsonify(message=f'error occured {e}'), 500
+
 
 ######################################################################
 # UPDATE A PICTURE
@@ -61,11 +77,20 @@ def create_picture():
 
 @app.route("/picture/<int:id>", methods=["PUT"])
 def update_picture(id):
-    pass
+    picture = request.get_json()
+    for i, item in enumerate(data):
+        if item['id'] == id:
+            data[i] = picture
+            return jsonify(picture)
+    return jsonify({"message": "picture not found"}), 404
 
 ######################################################################
 # DELETE A PICTURE
 ######################################################################
 @app.route("/picture/<int:id>", methods=["DELETE"])
 def delete_picture(id):
-    pass
+    for i, item in enumerate(data):
+        if item['id'] == id:
+            del data[i]
+            return make_response('', 204)
+    return jsonify({"message": "picture not found"}), 404
